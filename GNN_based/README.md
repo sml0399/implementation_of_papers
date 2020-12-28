@@ -1,7 +1,7 @@
 # GNN_based
 - Supervised
 	- (GCN) papers: 
-		- SEMI-SUPERVISED CLASSIFICATION WITH GRAPH CONVOLUTIONAL NETWORKS
+		- Semi-Supervised classification with Graph Convolutional Networks
 			- https://openreview.net/pdf?id=SJU4ayYgl
 - Unsupervised
 	- (DGI) papers:
