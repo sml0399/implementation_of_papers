@@ -1,1 +1,13 @@
 # GNN_based
+- Supervised
+	- (GCN) papers: 
+		- SEMI-SUPERVISED CLASSIFICATION WITH GRAPH CONVOLUTIONAL NETWORKS
+			- https://openreview.net/pdf?id=SJU4ayYgl
+- Unsupervised
+	- (DGI) papers:
+		- Deep Graph Infomax
+			- https://arxiv.org/abs/1809.10341
+- Scalability considered
+	- (GraphSAGE) papers:
+		- Inductive Representation Learning on Large Graphs
+			- https://arxiv.org/pdf/1706.02216.pdf
