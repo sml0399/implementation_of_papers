@@ -5,7 +5,7 @@ import numpy as np
 
 
 def RMSE(dataset):
-	
+	return np.sqrt(np.mean([float((true_value - prediction)**2) for (_, _, true_value, prediction) in dataset]))
 
 
 

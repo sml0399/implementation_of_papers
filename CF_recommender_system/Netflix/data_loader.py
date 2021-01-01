@@ -20,7 +20,7 @@ def loader_1M():
 
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/1M_dataset/ratings.dat',"r")
 	text=f.read().split('\n')
-	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("::")[0:3]]) for row in text[0:-1]])
+	new_text=np.asarray([np.asarray([np.float64(element) for element in row.split("::")[0:3]]) for row in text[0:-1]])
 	return new_text
 
 def loader_100k():
@@ -31,7 +31,7 @@ def loader_100k():
 
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u.data',"r")
 	text=f.read().split('\n')
-	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	new_text=np.asarray([np.asarray([np.float64(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
 	return new_text
 
 
@@ -61,37 +61,46 @@ def split_dataset(dataset, num_fold=5):
 	return np.asarray(resulting_set,dtype=object)
 		
 
-
+def get_dataset_info(dataset):
+	
+	# (return mean, # of users, # of items) of dataset
+	# input: dataset of form [user id, item id, rating]
+	user=list(set([i[0] for i in dataset]))
+	item=list(set([i[1] for i in dataset]))
+	num_user=len(user)
+	num_item=len(item)
+	data_mean=np.mean([i[2] for i in dataset])
+	return (data_mean, num_user, num_item,user,item)
 
 # train_set given by 100k
 def loader_100k_1():
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u1.base',"r")
 	text=f.read().split('\n')
-	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	new_text=np.asarray([np.asarray([np.float64(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
 	return new_text
 
 def loader_100k_2():
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u2.base',"r")
 	text=f.read().split('\n')
-	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	new_text=np.asarray([np.asarray([np.float64(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
 	return new_text
 
 def loader_100k_3():
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u3.base',"r")
 	text=f.read().split('\n')
-	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	new_text=np.asarray([np.asarray([np.float64(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
 	return new_text
 
 def loader_100k_4():
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u4.base',"r")
 	text=f.read().split('\n')
-	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	new_text=np.asarray([np.asarray([np.float64(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
 	return new_text
 
 def loader_100k_5():
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u5.base',"r")
 	text=f.read().split('\n')
-	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	new_text=np.asarray([np.asarray([np.float64(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
 	return new_text
 
 
@@ -100,29 +109,29 @@ def loader_100k_5():
 def loader_100k_t1(): 
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u1.test',"r")
 	text=f.read().split('\n')
-	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	new_text=np.asarray([np.asarray([np.float64(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
 	return new_text
 
 def loader_100k_t2():
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u2.test',"r")
 	text=f.read().split('\n')
-	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	new_text=np.asarray([np.asarray([np.float64(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
 	return new_text
 
 def loader_100k_t3():
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u3.test',"r")
 	text=f.read().split('\n')
-	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	new_text=np.asarray([np.asarray([np.float64(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
 	return new_text
 
 def loader_100k_t4():
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u4.test',"r")
 	text=f.read().split('\n')
-	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	new_text=np.asarray([np.asarray([np.float64(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
 	return new_text
 
 def loader_100k_t5(): 
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u5.test',"r")
 	text=f.read().split('\n')
-	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	new_text=np.asarray([np.asarray([np.float64(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
 	return new_text
