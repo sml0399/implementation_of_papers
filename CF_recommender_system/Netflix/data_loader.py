@@ -1,6 +1,8 @@
 import os
 import os.path
 import numpy as np
+import random
+import itertools as ite
 # user id/ item id /rating /timestamp
 
 
@@ -10,8 +12,36 @@ def loader_1M():
 	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("::")[0:3]]) for row in text[0:-1]])
 	return new_text
 
+def loader_100k():
+	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u.data',"r")
+	text=f.read().split('\n')
+	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	return new_text
 
-# train_set
+def split_dataset(dataset, num_fold=5):
+	if(num_fold<2 or num_fold==None):
+		print("error in num_fold argument")
+		return -1
+	data_length=len(dataset)
+	index_array=np.arange(data_length)
+	random.shuffle(index_array)
+	start=stop=0
+	resulting_set=[]
+	for i in range(num_fold):
+		start = stop
+		stop += len(index_array) // num_fold
+		if i < len(index_array) % num_fold:
+			stop += 1
+
+		trainset = np.asarray([dataset[j] for j in ite.chain(index_array[:start],index_array[stop:])])
+		testset = np.asarray([dataset[j] for j in index_array[start:stop]])
+		resulting_set.append(np.asarray([trainset,testset]))
+	return np.asarray(resulting_set)
+		
+
+
+
+# train_set given by 100k
 def loader_100k_1():
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u1.base',"r")
 	text=f.read().split('\n')
@@ -43,7 +73,8 @@ def loader_100k_5():
 	return new_text
 
 
-# test_set
+
+# test_set given by 100k
 def loader_100k_t1(): 
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u1.test',"r")
 	text=f.read().split('\n')
