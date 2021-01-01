@@ -3,22 +3,44 @@ import os.path
 import numpy as np
 import random
 import itertools as ite
-# user id/ item id /rating /timestamp
 
+# (original) dataset content: user id/ item id /rating /timestamp
+# (data_loader.py) dataset content: user id/ item id /rating
+
+# Usage Example:
+# import data_loader as dl
+# dataset=dl.loader_1M()
+# splitted_dataset=dl.split_dataset( datset )
 
 def loader_1M():
+
+	# load 1M dataset from the directory
+	# no input
+	# returns 2D ndarray type dataset
+
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/1M_dataset/ratings.dat',"r")
 	text=f.read().split('\n')
 	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("::")[0:3]]) for row in text[0:-1]])
 	return new_text
 
 def loader_100k():
+
+	# load 100k dataset from the directory
+	# no input
+	# returns 2D ndarray type dataset
+
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u.data',"r")
 	text=f.read().split('\n')
 	new_text=np.asarray([np.asarray([np.float(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
 	return new_text
 
+
 def split_dataset(dataset, num_fold=5):
+
+	# split the given dataset
+	# dataset and number of folds(default 5) as input
+	# returns 4D ndarray type dataset :   [ [trainset, testset] * num_fold ] with trainset and testset being 2D ndarray dataset
+	
 	if(num_fold<2 or num_fold==None):
 		print("error in num_fold argument")
 		return -1
@@ -33,10 +55,10 @@ def split_dataset(dataset, num_fold=5):
 		if i < len(index_array) % num_fold:
 			stop += 1
 
-		trainset = np.asarray([dataset[j] for j in ite.chain(index_array[:start],index_array[stop:])])
-		testset = np.asarray([dataset[j] for j in index_array[start:stop]])
-		resulting_set.append(np.asarray([trainset,testset]))
-	return np.asarray(resulting_set)
+		trainset = np.asarray([dataset[j] for j in ite.chain(index_array[:start],index_array[stop:])],dtype=object)
+		testset = np.asarray([dataset[j] for j in index_array[start:stop]],dtype=object)
+		resulting_set.append(np.asarray([trainset,testset],dtype=object))
+	return np.asarray(resulting_set,dtype=object)
 		
 
 
