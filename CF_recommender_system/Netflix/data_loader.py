@@ -10,7 +10,7 @@ import itertools as ite
 # Usage Example:
 # import data_loader as dl
 # dataset=dl.loader_1M()
-# splitted_dataset=dl.split_dataset( datset )
+# splitted_dataset=dl.split_dataset( dataset )
 
 def loader_1M():
 
