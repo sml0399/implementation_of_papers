@@ -5,7 +5,7 @@ from numba import vectorize, cuda
 import data_loader as dl
 
 class SVD():
-	def __init__(self,num_factors=100,num_epochs=20,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1 ): # default epoch 20
+	def __init__(self,num_factors=100,num_epochs=20,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ): # default epoch 20
 		self.trainset=0
 		self.mu=0 # global mean mu
 		self.bu=0 # user bias
@@ -18,13 +18,38 @@ class SVD():
 		self.lr=lr
 		self.reg_constant=reg_constant
 		self.num_epochs=num_epochs
+		self.rating_min=rating_min
+		self.rating_max=rating_max
+		self.user_index=0
+		self.item_index=0
+
+	def reset_parameters(self,num_factors=100,num_epochs=20,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ):
+		self.trainset=0
+		self.mu=0 
+		self.bu=0 
+		self.bi=0 
+		self.p=0
+		self.q=0
+		self.num_factors=num_factors
+		self.init_mean=init_mean
+		self.init_std=init_std
+		self.lr=lr
+		self.reg_constant=reg_constant
+		self.num_epochs=num_epochs
+		self.rating_min=rating_min
+		self.rating_max=rating_max
+		self.user_index=0
+		self.item_index=0
 
 
 	#@vectorize()
 	def fit(self, trainset,load_parameters=False):
+		self.reset_parameters()
 		if(not load_parameters):
 			self.trainset=trainset
 			(mu,num_user,num_item,user_index,item_index)=dl.get_dataset_info(trainset)
+			self.user_index=user_index
+			self.item_index=item_index
 			self.mu=mu
 			self.bu=np.zeros(int(num_user), np.float64)
 			self.bi=np.zeros(int(num_item), np.float64)
@@ -34,7 +59,7 @@ class SVD():
 			load_parameters()
 			(mu,num_user,num_item,user_index,item_index)=dl.get_dataset_info(self.trainset)
 		for epoch in range(self.num_epochs):
-			print("epoch: ",epoch)
+	#		print("epoch: ",epoch)
 			for user, item, rating in self.trainset:
 				user=int(user_index.index(user))
 				item=int(item_index.index(item))
@@ -52,12 +77,25 @@ class SVD():
 
 	#@vectorize(['float64(float64)'], target ="cuda")
 	def predict(self,dataset):
-		(mu,num_user,num_item,user_index,item_index)=dl.get_dataset_info(dataset)
 		result=[]
 		for user, item , rating in dataset:
-			index_user=int(user_index.index(user))
-			index_item=int(item_index.index(item))
-			result.append(np.asarray([user,item, rating, mu+self.bu[index_user]+self.bi[index_item]+np.dot(self.q[index_item],self.p[index_user])], dtype=np.float64))
+			prediction=self.mu
+			if(user in self.user_index):
+				index_user=int(self.user_index.index(user))
+				prediction+=self.bu[index_user]
+			if(item in self.item_index):
+				index_item=int(self.item_index.index(item))
+				prediction+=self.bi[index_item]
+			if((item in self.item_index)and(user in self.user_index)):
+				prediction+=np.dot(self.q[index_item],self.p[index_user])
+			if(prediction>self.rating_max):
+				prediction=self.rating_max
+			elif(prediction<self.rating_min):
+				prediction=self.rating_min
+			else:
+				prediction=prediction
+			result.append(np.asarray([user,item, rating, prediction], dtype=np.float64))
+	#		print(result[-1][2], result[-1][3])
 		return np.asarray(result,dtype=object)
 		
 
