@@ -1,5 +1,7 @@
 import data_loader as dl
-data=dl.loader_100k()
-print(data)
-dataset=dl.split_dataset(data)
-print(dataset)
+import os
+import models
+svd=models.SVD()
+svd.load_parameters()
+
+
