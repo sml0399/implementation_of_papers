@@ -1,7 +1,7 @@
 # SVD
 import numpy as np
 import os
-from numba import vectorize, cuda
+#from numba import vectorize, cuda
 cimport numpy as np  # noqa
 import data_loader as dl
 
@@ -78,8 +78,8 @@ class SVD():
 		for epoch in range(num_epochs):
 			print("epoch: ",epoch)
 			for user, item, rating in trainset:
-				user=int(user_index.index(user))
-				item=int(item_index.index(item))
+				user=user_index.index(user)
+				item=item_index.index(item)
 				err=rating-mu-bu[user]-bi[item]
 				for nf in range(num_factors):
 					err-=q[item,nf]*p[user,nf]
@@ -109,13 +109,16 @@ class SVD():
 
 	def predict(self,dataset):
 		result=[]
+		cdef int user=0
+		cdef int item=0
+		cdef int rating=0
 		for user, item , rating in dataset:
 			prediction=self.mu
 			if(user in self.user_index):
-				index_user=int(self.user_index.index(user))
+				index_user=self.user_index.index(user)
 				prediction+=self.bu[index_user]
 			if(item in self.item_index):
-				index_item=int(self.item_index.index(item))
+				index_item=self.item_index.index(item)
 				prediction+=self.bi[index_item]
 			if((item in self.item_index)and(user in self.user_index)):
 				prediction+=np.dot(self.q[index_item],self.p[index_user])
@@ -215,13 +218,12 @@ class SVDpp():
 
 	def fit(self, trainset,load_parameters=False):
 		self.reset_parameters()
-		user_prefered_item=[]
 		if(not load_parameters):
 			self.trainset=trainset
-			(mu,num_user,num_item,user_index,item_index)=dl.get_dataset_info(self.trainset)
+			(mu2,num_user,num_item,user_index,item_index)=dl.get_dataset_info(self.trainset)
 			self.user_index=user_index
 			self.item_index=item_index
-			self.mu=mu
+			self.mu=mu2
 			self.bu=np.zeros(int(num_user), np.float64)
 			self.bi=np.zeros(int(num_item), np.float64)
 			self.p=np.random.normal(self.init_mean, self.init_std, (int(num_user),self.num_factors))
@@ -229,50 +231,88 @@ class SVDpp():
 			self.y=np.random.normal(self.init_mean, self.init_std, (int(num_item),self.num_factors))
 		if(load_parameters):
 			load_parameters()
-			(mu,num_user,num_item,user_index,item_index)=dl.get_dataset_info(self.trainset)
+			(mu2,num_user,num_item,user_index,item_index)=dl.get_dataset_info(self.trainset)
 
 
+		cdef int num_epochs=self.num_epochs
+		cdef np.ndarray[np.double_t] bu=self.bu
+		cdef np.ndarray[np.double_t] bi=self.bi
+		cdef double mu=self.mu
+		cdef int num_factors=self.num_factors
+		cdef np.ndarray[np.double_t, ndim=2] p=self.p
+		cdef np.ndarray[np.double_t, ndim=2] q=self.q
+		cdef double lr=self.lr
+		cdef double reg_constant=self.reg_constant
+		cdef int user=0
+		cdef int item=0
+		cdef int rating=0
+		cdef np.ndarray[np.double_t, ndim=1] uif=np.zeros(self.num_factors,np.float64)
+		cdef np.ndarray[np.double_t, ndim=2] y=self.y
+
+		user_prefered=[]
 		for i in range(len(user_index)):
-			user_prefered_item.append([j for (k,j,_) in self.trainset if k==user_index[i] ])
+			user_prefered.append(np.array([j for (k,j,_) in trainset if k==user_index[i] ],dtype=int))
+
+		cdef np.ndarray[object, ndim=1] user_prefered_item=np.array(user_prefered)
 		self.user_prefered_item=user_prefered_item
 
 		for epoch in range(self.num_epochs):
-			print("epoch: ",epoch)
+
+			print("epoch: ",epoch)###
+			loop_index=0###
 			for user, item, rating in self.trainset:
+				print("loop: ",loop_index)####
 				# convert to index
-				user=int(user_index.index(user))
-				item=int(item_index.index(item))
+				user=user_index.index(user)
+				item=item_index.index(item)
 				uif=np.zeros(self.num_factors,np.float64)
 				for prefered_items in self.user_prefered_item[user]:
-					prefered_item=int(item_index.index(prefered_items))
-					for factors in range(self.num_factors):
-						uif[factors]+=self.y[prefered_item, factors]/np.sqrt(len(self.user_prefered_item[user]))
-				err=rating-self.mu-self.bu[user]-self.bi[item]
-				for nf in range(self.num_factors):
-					err-=self.q[item,nf]*(self.p[user,nf]+uif[nf])
-				self.bu[user]+=self.lr*(err-self.reg_constant*self.bu[user])
-				self.bi[item]+=self.lr*(err-self.reg_constant*self.bi[item])
-				for nf in range(self.num_factors):
-					before_p=self.p[user,nf]
-					before_q=self.q[item,nf]
-					self.p[user,nf]+=self.lr*(err*before_q-self.reg_constant*before_p)
-					self.q[item,nf]+=self.lr*(err*before_p-self.reg_constant*before_q)
-					for prefered_items in self.user_prefered_item[user]:
-						prefered_item=int(item_index.index(prefered_items))
-						self.y[prefered_item, nf]+=self.lr*(err*before_q/np.sqrt(len(self.user_prefered_item[user]))-self.reg_constant*self.y[prefered_item, nf])
+					prefered_item=item_index.index(prefered_items)
+					for factors in range(num_factors):
+						uif[factors]=uif[factors]+y[prefered_item, factors]/np.sqrt(len(user_prefered_item[user]))
+				err=rating-mu-bu[user]-bi[item]
+				for nf in range(num_factors):
+					err-=q[item,nf]*(p[user,nf]+uif[nf])
+				bu[user]+=lr*(err-reg_constant*bu[user])
+				bi[item]+=lr*(err-reg_constant*bi[item])
+				for nf in range(num_factors):
+					before_p=p[user,nf]
+					before_q=q[item,nf]
+					p[user,nf]+=lr*(err*before_q-reg_constant*before_p)
+					q[item,nf]+=lr*(err*before_p-reg_constant*before_q)
+					for prefered_items in user_prefered_item[user]:
+						prefered_item=item_index.index(prefered_items)
+						y[prefered_item, nf]+=lr*(err*before_q/np.sqrt(len(user_prefered_item[user]))-reg_constant*y[prefered_item, nf])
+				loop_index+=1#####
+		print("fitting end")###
+
+		self.num_epochs=num_epochs
+		self.bu=bu
+		self.bi=bi
+		self.mu=mu
+		self.num_factors=num_factors
+		self.p=p
+		self.q=q
+		self.lr=lr
+		self.reg_constant=reg_constant
+		self.y=y
+		self.user_prefered_item=user_prefered_item
+
+
 		return 0.0
 
 
 
 	def predict(self,dataset):
+		print("prediction")###
 		result=[]
 		for user, item , rating in dataset:
 			prediction=self.mu
 			if(user in self.user_index):
-				index_user=int(self.user_index.index(user))
+				index_user=self.user_index.index(user)
 				prediction+=self.bu[index_user]
 			if(item in self.item_index):
-				index_item=int(self.item_index.index(item))
+				index_item=self.item_index.index(item)
 				prediction+=self.bi[index_item]
 			if((item in self.item_index)and(user in self.user_index)):
 				prediction+=np.dot(self.q[index_item],self.p[index_user]+(sum(self.y[self.item_index.index(j)] for j in self.user_prefered_item[index_user]) / np.sqrt(len(self.user_prefered_item[index_user]))))
@@ -327,9 +367,9 @@ class SVDpp():
 		self.y=float(read_text[9])
 		print("success : loading parameters")
 
-'''
+
 class SVDpp_Integrated():
-	def __init__(self,num_factors=100,num_epochs=30,init_mean=0,init_std=0.1, lr1=0.007,lr2=0.007,lr3=0.001,rc6=0.005,rc7=0.015,rc8=0.015,k=300 ,rating_min=1, rating_max=5 ):
+	def __init__(self,num_factors=100,num_epochs=30,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ):
 		self.trainset=0
 		self.mu=0 # global mean mu
 		self.bu=0 # user bias
@@ -349,7 +389,7 @@ class SVDpp_Integrated():
 		self.item_index=0
 		self.user_prefered_item=0
 
-	def reset_parameters(self,num_factors=100,num_epochs=30,init_mean=0,init_std=0.1, lr1=0.007,lr2=0.007,lr3=0.001,rc6=0.005,rc7=0.015,rc8=0.015,k=300 ,rating_min=1, rating_max=5 ):
+	def reset_parameters(self,num_factors=100,num_epochs=30,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ):
 		self.trainset=0
 		self.mu=0 
 		self.bu=0 
@@ -373,13 +413,12 @@ class SVDpp_Integrated():
 
 	def fit(self, trainset,load_parameters=False):
 		self.reset_parameters()
-		user_prefered_item=[]
 		if(not load_parameters):
 			self.trainset=trainset
-			(mu,num_user,num_item,user_index,item_index)=dl.get_dataset_info(self.trainset)
+			(mu2,num_user,num_item,user_index,item_index)=dl.get_dataset_info(self.trainset)
 			self.user_index=user_index
 			self.item_index=item_index
-			self.mu=mu
+			self.mu=mu2
 			self.bu=np.zeros(int(num_user), np.float64)
 			self.bi=np.zeros(int(num_item), np.float64)
 			self.p=np.random.normal(self.init_mean, self.init_std, (int(num_user),self.num_factors))
@@ -387,50 +426,88 @@ class SVDpp_Integrated():
 			self.y=np.random.normal(self.init_mean, self.init_std, (int(num_item),self.num_factors))
 		if(load_parameters):
 			load_parameters()
-			(mu,num_user,num_item,user_index,item_index)=dl.get_dataset_info(self.trainset)
+			(mu2,num_user,num_item,user_index,item_index)=dl.get_dataset_info(self.trainset)
 
 
+		cdef int num_epochs=self.num_epochs
+		cdef np.ndarray[np.double_t] bu=self.bu
+		cdef np.ndarray[np.double_t] bi=self.bi
+		cdef double mu=self.mu
+		cdef int num_factors=self.num_factors
+		cdef np.ndarray[np.double_t, ndim=2] p=self.p
+		cdef np.ndarray[np.double_t, ndim=2] q=self.q
+		cdef double lr=self.lr
+		cdef double reg_constant=self.reg_constant
+		cdef int user=0
+		cdef int item=0
+		cdef int rating=0
+		cdef np.ndarray[np.double_t, ndim=1] uif=np.zeros(self.num_factors,np.float64)
+		cdef np.ndarray[np.double_t, ndim=2] y=self.y
+
+		user_prefered=[]
 		for i in range(len(user_index)):
-			user_prefered_item.append([j for (k,j,_) in self.trainset if k==user_index[i] ])
+			user_prefered.append(np.array([j for (k,j,_) in trainset if k==user_index[i] ],dtype=int))
+
+		cdef np.ndarray[object, ndim=1] user_prefered_item=np.array(user_prefered)
 		self.user_prefered_item=user_prefered_item
 
 		for epoch in range(self.num_epochs):
-	#		print("epoch: ",epoch)
+
+			print("epoch: ",epoch)###
+			loop_index=0###
 			for user, item, rating in self.trainset:
+				print("loop: ",loop_index)####
 				# convert to index
-				user=int(user_index.index(user))
-				item=int(item_index.index(item))
+				user=user_index.index(user)
+				item=item_index.index(item)
 				uif=np.zeros(self.num_factors,np.float64)
 				for prefered_items in self.user_prefered_item[user]:
-					prefered_item=int(item_index.index(prefered_items))
-					for factors in range(self.num_factors):
-						uif[factors]+=self.y[prefered_item, factors]/np.sqrt(len(self.user_prefered_item[user]))
-				err=rating-self.mu-self.bu[user]-self.bi[item]
-				for nf in range(self.num_factors):
-					err-=self.q[item,nf]*(self.p[user,nf]+uif[nf])
-				self.bu[user]+=self.lr*(err-self.reg_constant*self.bu[user])
-				self.bi[item]+=self.lr*(err-self.reg_constant*self.bi[item])
-				for nf in range(self.num_factors):
-					before_p=self.p[user,nf]
-					before_q=self.q[item,nf]
-					self.p[user,nf]+=self.lr*(err*before_q-self.reg_constant*before_p)
-					self.q[item,nf]+=self.lr*(err*before_p-self.reg_constant*before_q)
-					for prefered_items in self.user_prefered_item[user]:
-						prefered_item=int(item_index.index(prefered_items))
-						self.y[prefered_item, nf]+=self.lr*(err*before_q/np.sqrt(len(self.user_prefered_item[user]))-self.reg_constant*self.y[prefered_item, nf])
+					prefered_item=item_index.index(prefered_items)
+					for factors in range(num_factors):
+						uif[factors]=uif[factors]+y[prefered_item, factors]/np.sqrt(len(user_prefered_item[user]))
+				err=rating-mu-bu[user]-bi[item]
+				for nf in range(num_factors):
+					err-=q[item,nf]*(p[user,nf]+uif[nf])
+				bu[user]+=lr*(err-reg_constant*bu[user])
+				bi[item]+=lr*(err-reg_constant*bi[item])
+				for nf in range(num_factors):
+					before_p=p[user,nf]
+					before_q=q[item,nf]
+					p[user,nf]+=lr*(err*before_q-reg_constant*before_p)
+					q[item,nf]+=lr*(err*before_p-reg_constant*before_q)
+					for prefered_items in user_prefered_item[user]:
+						prefered_item=item_index.index(prefered_items)
+						y[prefered_item, nf]+=lr*(err*before_q/np.sqrt(len(user_prefered_item[user]))-reg_constant*y[prefered_item, nf])
+				loop_index+=1#####
+		print("fitting end")###
+
+		self.num_epochs=num_epochs
+		self.bu=bu
+		self.bi=bi
+		self.mu=mu
+		self.num_factors=num_factors
+		self.p=p
+		self.q=q
+		self.lr=lr
+		self.reg_constant=reg_constant
+		self.y=y
+		self.user_prefered_item=user_prefered_item
+
+
 		return 0.0
 
 
 
 	def predict(self,dataset):
+		print("prediction")###
 		result=[]
 		for user, item , rating in dataset:
 			prediction=self.mu
 			if(user in self.user_index):
-				index_user=int(self.user_index.index(user))
+				index_user=self.user_index.index(user)
 				prediction+=self.bu[index_user]
 			if(item in self.item_index):
-				index_item=int(self.item_index.index(item))
+				index_item=self.item_index.index(item)
 				prediction+=self.bi[index_item]
 			if((item in self.item_index)and(user in self.user_index)):
 				prediction+=np.dot(self.q[index_item],self.p[index_user]+(sum(self.y[self.item_index.index(j)] for j in self.user_prefered_item[index_user]) / np.sqrt(len(self.user_prefered_item[index_user]))))
@@ -441,6 +518,7 @@ class SVDpp_Integrated():
 			else:
 				prediction=prediction
 			result.append(np.asarray([user,item, rating, prediction], dtype=np.float64))
+	#		print(result[-1][2], result[-1][3])
 		return np.asarray(result,dtype=object)
 		
 
@@ -483,7 +561,3 @@ class SVDpp_Integrated():
 		self.q=np.asarray(read_text[8].split('\t'),dtype=np.float).reshape(int(e),int(f) )
 		self.y=float(read_text[9])
 		print("success : loading parameters")
-	
-
-'''
-
