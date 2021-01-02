@@ -1,3 +1,2 @@
-conda install -c numpy numba
-conda update numpy numba
-pip3 install numba numpy
+conda install -c numpy numba cython
+conda install gcc_linux-64
