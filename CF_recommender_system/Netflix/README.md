@@ -21,9 +21,9 @@
 		- class SVDpp() : 
 		- class SVDpp_Integrated() : 
 	- setup.py : used to compile models.pyx ( python3 setup.py build_ext --inplace )
-		- 
+		- .
 	- test.py : sample test python code
-		- 
+		- .
 
 - Paper
 	- Factorization Meets the Neighborhood: a Multifaceted Collaborative Filtering Model
