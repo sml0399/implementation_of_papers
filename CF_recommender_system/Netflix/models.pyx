@@ -74,10 +74,17 @@ class SVD():
 		cdef int user=0
 		cdef int item=0
 		cdef int rating=0
+		cdef double err
+		cdef int nf
+		cdef double before_p
+		cdef double before_q
 
 		for epoch in range(num_epochs):
-			print("epoch: ",epoch)
+			print("epoch: ",epoch)###
+			loop_index=0###
 			for user, item, rating in trainset:
+				if(loop_index%100==0):
+					print("loop: ", loop_index)###
 				user=user_index.index(user)
 				item=item_index.index(item)
 				err=rating-mu-bu[user]-bi[item]
@@ -90,6 +97,7 @@ class SVD():
 					before_q=q[item,nf]
 					p[user,nf]+=lr*(err*before_q-reg_constant*before_p)
 					q[item,nf]+=lr*(err*before_p-reg_constant*before_q)
+				loop_index+=1###
 
 
 		self.num_epochs=num_epochs
@@ -192,7 +200,6 @@ class SVDpp():
 		self.rating_max=rating_max
 		self.user_index=0
 		self.item_index=0
-		self.user_prefered_item=0
 
 	def reset_parameters(self,num_factors=100,num_epochs=30,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ):
 		self.trainset=0
@@ -212,7 +219,6 @@ class SVDpp():
 		self.rating_max=rating_max
 		self.user_index=0
 		self.item_index=0
-		self.user_prefered_item=0
 
 
 
@@ -248,28 +254,34 @@ class SVDpp():
 		cdef int rating=0
 		cdef np.ndarray[np.double_t, ndim=1] uif=np.zeros(self.num_factors,np.float64)
 		cdef np.ndarray[np.double_t, ndim=2] y=self.y
+		cdef int old_user=-1
+		cdef double err=0
+		cdef int factors=0
+		cdef int prefered_item=0
+		cdef double before_p=0
+		cdef double before_q=0
+		cdef int nf=0
 
-		user_prefered=[]
-		for i in range(len(user_index)):
-			user_prefered.append(np.array([j for (k,j,_) in trainset if k==user_index[i] ],dtype=int))
-
-		cdef np.ndarray[object, ndim=1] user_prefered_item=np.array(user_prefered)
-		self.user_prefered_item=user_prefered_item
+		cdef np.ndarray[int, ndim=1] user_prefered_item
 
 		for epoch in range(self.num_epochs):
 
 			print("epoch: ",epoch)###
 			loop_index=0###
 			for user, item, rating in self.trainset:
-				print("loop: ",loop_index)####
+				if(loop_index%100==0):
+					print("loop: ",loop_index)####
+				if(user!=old_user):
+					user_prefered_item=np.array([j for (k,j,_) in trainset if k==user ],dtype=np.intc)
+				old_user=user
 				# convert to index
 				user=user_index.index(user)
 				item=item_index.index(item)
 				uif=np.zeros(self.num_factors,np.float64)
-				for prefered_items in self.user_prefered_item[user]:
+				for prefered_items in user_prefered_item:
 					prefered_item=item_index.index(prefered_items)
 					for factors in range(num_factors):
-						uif[factors]=uif[factors]+y[prefered_item, factors]/np.sqrt(len(user_prefered_item[user]))
+						uif[factors]=uif[factors]+y[prefered_item, factors]/np.sqrt(len(user_prefered_item))
 				err=rating-mu-bu[user]-bi[item]
 				for nf in range(num_factors):
 					err-=q[item,nf]*(p[user,nf]+uif[nf])
@@ -280,9 +292,10 @@ class SVDpp():
 					before_q=q[item,nf]
 					p[user,nf]+=lr*(err*before_q-reg_constant*before_p)
 					q[item,nf]+=lr*(err*before_p-reg_constant*before_q)
-					for prefered_items in user_prefered_item[user]:
+					for prefered_items in user_prefered_item:
 						prefered_item=item_index.index(prefered_items)
-						y[prefered_item, nf]+=lr*(err*before_q/np.sqrt(len(user_prefered_item[user]))-reg_constant*y[prefered_item, nf])
+						y[prefered_item, nf]+=lr*(err*before_q/np.sqrt(len(user_prefered_item))-reg_constant*y[prefered_item, nf])
+
 				loop_index+=1#####
 		print("fitting end")###
 
@@ -296,7 +309,6 @@ class SVDpp():
 		self.lr=lr
 		self.reg_constant=reg_constant
 		self.y=y
-		self.user_prefered_item=user_prefered_item
 
 
 		return 0.0
@@ -306,16 +318,32 @@ class SVDpp():
 	def predict(self,dataset):
 		print("prediction")###
 		result=[]
+		cdef np.double_t[:,:] p=self.p
+		cdef np.double_t[:,:] q=self.q
+		cdef np.double_t[:,:] y=self.y
+		cdef int[:] user_prefered_item
+		cdef np.double_t[:] bu=self.bu
+		cdef np.double_t[:] bi=self.bi
+		cdef double mu=self.mu
+		cdef int user=0
+		cdef int old_user=-1
+		cdef int item=0
+		cdef int rating=0
+		cdef double prediction=0
 		for user, item , rating in dataset:
-			prediction=self.mu
+			
+			prediction=mu
 			if(user in self.user_index):
 				index_user=self.user_index.index(user)
-				prediction+=self.bu[index_user]
+				prediction+=bu[index_user]
 			if(item in self.item_index):
 				index_item=self.item_index.index(item)
-				prediction+=self.bi[index_item]
+				prediction+=bi[index_item]
 			if((item in self.item_index)and(user in self.user_index)):
-				prediction+=np.dot(self.q[index_item],self.p[index_user]+(sum(self.y[self.item_index.index(j)] for j in self.user_prefered_item[index_user]) / np.sqrt(len(self.user_prefered_item[index_user]))))
+				if(user!=old_user):
+					user_prefered_item=np.array([j for (k,j,_) in self.trainset if k==user ],dtype=np.intc)
+				old_user=user
+				prediction+=np.dot(q[index_item],p[index_user]+(sum(y[self.item_index.index(j)] for j in user_prefered_item) / np.sqrt(len(user_prefered_item))))
 			if(prediction>self.rating_max):
 				prediction=self.rating_max
 			elif(prediction<self.rating_min):
@@ -367,7 +395,7 @@ class SVDpp():
 		self.y=float(read_text[9])
 		print("success : loading parameters")
 
-
+'''
 class SVDpp_Integrated():
 	def __init__(self,num_factors=100,num_epochs=30,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ):
 		self.trainset=0
@@ -561,3 +589,5 @@ class SVDpp_Integrated():
 		self.q=np.asarray(read_text[8].split('\t'),dtype=np.float).reshape(int(e),int(f) )
 		self.y=float(read_text[9])
 		print("success : loading parameters")
+
+'''

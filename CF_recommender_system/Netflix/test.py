@@ -6,7 +6,9 @@ import models
 #import modeling
 import numpy as np
 import accuracy
-'''
+
+
+
 rmse_list=[]
 svd=models.SVD()
 svd.fit(dl.loader_100k_1())
@@ -36,6 +38,8 @@ print("SVD RMSE for Fold 2 : ",rmse_list[1])
 print("SVD RMSE for Fold 3 : ",rmse_list[2])
 print("SVD RMSE for Fold 4 : ",rmse_list[3])
 print("SVD RMSE for Fold 5 : ",rmse_list[4])
+
+
 
 '''
 
@@ -69,11 +73,11 @@ print("SVD++ RMSE for Fold 3 : ",rmse_list[2])
 print("SVD++ RMSE for Fold 4 : ",rmse_list[3])
 print("SVD++ RMSE for Fold 5 : ",rmse_list[4])
 
+'''
 
-
-
+'''
 rmse_list=[]
-svd=models.SVDpp()
+svd=models.SVDpp_Integrated()
 svd.fit(dl.loader_100k_1())
 estimate=svd.predict(dl.loader_100k_t1())
 rmse=accuracy.RMSE(estimate)
@@ -104,4 +108,4 @@ print("SVD++ Integrated RMSE for Fold 5 : ",rmse_list[4])
 
 
 
-
+'''
