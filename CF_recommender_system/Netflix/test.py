@@ -26,3 +26,8 @@ svd.fit(dl.loader_100k_5())
 estimate=svd.predict(dl.loader_100k_t5())
 rmse=accuracy.RMSE(estimate)
 print("SVD RMSE for Fold 5 : ",rmse)
+'''
+svdpp=models.SVDpp()
+svdpp.fit(dl.loader_100k_1())
+'''
+
