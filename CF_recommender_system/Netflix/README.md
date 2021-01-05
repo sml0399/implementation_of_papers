@@ -28,39 +28,66 @@
 	- Netflix.ppt : ppt file used for seminar(briefly explains the paper)
 	- .gitignore, _init_.py : _init_.py to make this folder as python module, .gitignore to manage repository
 	- accuracy.py : python code calculating accuracy(ex: RMSE)
-		- RMSE(dataset) : get RMSE of dataset. Last two info of each input data must be true_value and predicted_value
+		- RMSE(dataset) : 
+			- get RMSE of dataset. Last two info of each input data must be true_value and predicted_value
 	- data_loader.py : python code that gets data from MovieLens dataset
-		- loader_1M() : load 1M MovieLens dataset
-		- loader_100k() : load 100k MovieLens dataset
-		- split_dataset(dataset, num_fold) : split given dataset into num_fold*[train_set,test_set]
-		- get_dataset_info(dataset) : get the following data - global_mean, number_of_users, number_of_items, users_list, items_list
-		- loader_100k_1() ~ loader_100k_5() : load one of 5-folded dataset(train_set - 80% of total data)
-		- loader_100k_t1() ~ loader_100k_t5() : load one of 5-folded dataset(test_set - 20% of total data)
-		- dataset_to_matrix(dataset) :  convert dataset to matrix. 
+		- loader_1M() : 
+			- load 1M MovieLens dataset
+		- loader_100k() : 
+			- load 100k MovieLens dataset
+		- split_dataset(dataset, num_fold) : 
+			- split given dataset into num_fold*[train_set,test_set]
+		- get_dataset_info(dataset) : 
+			- get the following data - global_mean, number_of_users, number_of_items, users_list, items_list
+		- loader_100k_1() ~ loader_100k_5() : 
+			- load one of 5-folded dataset(train_set - 80% of total data)
+		- loader_100k_t1() ~ loader_100k_t5() : 
+			- load one of 5-folded dataset(test_set - 20% of total data)
+		- dataset_to_matrix(dataset) :  
+			- convert dataset to matrix. 
 	- install_requirements.sh : shell script for installing necessary libraries
 		- install numpy,gcc and cython to anaconda3
 	- models.pyx : python code that defined models of papers
-		- class SVD() : basic SVD model at paper "Factorization Meets the Neighborhood: a Multifaceted Collaborative Filtering Model"
-		- class SVDpp() : basic SVDpp model at paper "Factorization Meets the Neighborhood: a Multifaceted Collaborative Filtering Model"
-		- class SVDpp_Integrated() : not implemented(will be implemented later)
+		- class SVD() : 
+			- basic SVD model at paper "Factorization Meets the Neighborhood: a Multifaceted Collaborative Filtering Model"
+		- class SVDpp() : 
+			- basic SVDpp model at paper "Factorization Meets the Neighborhood: a Multifaceted Collaborative Filtering Model"
+		- class SVDpp_Integrated() : 
+			- not implemented(will be implemented later)
 		- parameters for the class initialization
-			- num_factors:  default value 50     decide number of factors to be used for model
-			- num_epochs:   default value 20     decide number of epochs
-			- init_mean:    default value 0      mean for normal distribution to initialize some parameters
-			- init_std:     default value 0.1    standard deviation for normal distribution to initialize some parameters
-			- lr:           default value 0.005  learning rate
-			- reg_constant: default value 0.1    contstant at regularizing term
-			- rating_min:   default value 1      minimum value of rating
-			- rating_max:   default value 5      maximum value of rating
+			- num_factors:  
+				- default value 50     decide number of factors to be used for model
+			- num_epochs:   
+				- default value 20     decide number of epochs
+			- init_mean:    
+				- default value 0      mean for normal distribution to initialize some parameters
+			- init_std:     
+				- default value 0.1    standard deviation for normal distribution to initialize some parameters
+			- lr:           
+				- default value 0.005  learning rate
+			- reg_constant: 
+				- default value 0.1    contstant at regularizing term
+			- rating_min:   
+				- default value 1      minimum value of rating
+			- rating_max:   
+				- default value 5      maximum value of rating
 		- each class has following functions
-			- reset_parameters(): reset the parameter values. Default value is same as above(class initialization). You can also specify the value just like initialization of class.
-			- fit(dataset, load_parameters=False) : train the model with given data. 'load_parameters=True' means that you will load pretrained parameters. Use load_parameters() function to load them. Default is not loading pretrained parameters. This will show you the RMSE for each epoch during training process
-			- predict(dataset) : predict the ratings of the given trainset. This function will return list of [user,item,real_rating,predicted_rating]
-			- save_parameters(name="SVD.txt") : save parameters to a file at parameters directory. Default name is SVD.txt of SVDpp.txt
-			- load_parameters(name="SVD.txt") : load parameters to a file at parameters directory. Default name is SVD.txt of SVDpp.txt
-	- setup.py : used to compile models.pyx ( python3 setup.py build_ext --inplace )
-	- test_SVD.py : sample test python code for SVD model
-	- test_SVDpp.py : sample test python code for SVD++ model
+			- reset_parameters(): 
+				- reset the parameter values. Default value is same as above(class initialization). You can also specify the value just like initialization of class.
+			- fit(dataset, load_parameters=False) : 
+				- train the model with given data. 'load_parameters=True' means that you will load pretrained parameters. Use load_parameters() function to load them. Default is not loading pretrained parameters. This will show you the RMSE for each epoch during training process
+			- predict(dataset) : 
+				- predict the ratings of the given trainset. This function will return list of [user,item,real_rating,predicted_rating]
+			- save_parameters(name="SVD.txt") : 
+				- save parameters to a file at parameters directory. Default name is SVD.txt of SVDpp.txt
+			- load_parameters(name="SVD.txt") : 
+				- load parameters to a file at parameters directory. Default name is SVD.txt of SVDpp.txt
+	- setup.py : 
+		- used to compile models.pyx ( python3 setup.py build_ext --inplace )
+	- test_SVD.py : 
+		- sample test python code for SVD model
+	- test_SVDpp.py : 
+		- sample test python code for SVD++ model
 - Paper
 	- Factorization Meets the Neighborhood: a Multifaceted Collaborative Filtering Model
 		- https://dl.acm.org/doi/pdf/10.1145/1401890.1401944
