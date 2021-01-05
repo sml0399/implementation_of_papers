@@ -4,26 +4,26 @@
 		- (https://riptutorial.com/ko/cython shows how to compile and execute files - written in korean)
 	- 2. execute the code to test/predict with the model (ex: python3 test_SVD.py )
 	- Usage Example: (Reading test file is useful)
-'''python
-import pyximport
-pyximport.install()
-import data_loader as dl
-import os
-import models
-import numpy as np
-import accuracy
-
-svd=models.SVDpp(num_epochs=20)    # decide model
-data1=dl.loader_100k_1()           # load dataset
-data1=dl.dataset_to_matrix(data1)  # convert dataset to rating matrix
-test1=dl.loader_100k_t1()          # load testset. Conversion to rating matrix is not needed
-svd.load_parameters("svdpp1.txt")  # You can load pretrained parameters 
-svd.fit(data1)                     # train data
-svd.save_parameters("svdpp1.txt")  # save trained parameters
-estimate=svd.predict(test1)        # predict testset
-rmse=accuracy.RMSE(estimate)       # calculate accuracy of prediction
-print(rmse)
-'''	
+    '''python
+    import pyximport
+    pyximport.install()
+    import data_loader as dl
+    import os
+    import models
+    import numpy as np
+    import accuracy
+    
+    svd=models.SVDpp(num_epochs=20)    # decide model
+    data1=dl.loader_100k_1()           # load dataset
+    data1=dl.dataset_to_matrix(data1)  # convert dataset to rating matrix
+    test1=dl.loader_100k_t1()          # load testset. Conversion to rating matrix is not needed
+    svd.load_parameters("svdpp1.txt")  # You can load pretrained parameters 
+    svd.fit(data1)                     # train data
+    svd.save_parameters("svdpp1.txt")  # save trained parameters
+    estimate=svd.predict(test1)        # predict testset
+    rmse=accuracy.RMSE(estimate)       # calculate accuracy of prediction
+    print(rmse)
+    '''	
 - Explanation of the files
 	- Netflix.ppt : ppt file used for seminar(briefly explains the paper)
 	- .gitignore, _init_.py : _init_.py to make this folder as python module, .gitignore to manage repository
