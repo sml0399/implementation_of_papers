@@ -3,7 +3,7 @@
 	- 1. python3 setup.py build_ext --inplace
 		- (https://riptutorial.com/ko/cython shows how to compile and execute files - written in korean)
 	- 2. execute the code to test/predict with the model (ex: python3 test_SVD.py )
-	- Usage Example: (Reading test file is useful)
+	- Usage Example: (Reading test file is useful. You must use after activating conda environment)
     ```python
     import pyximport
     pyximport.install()
@@ -88,6 +88,28 @@
 		- sample test python code for SVD model
 	- test_SVDpp.py : 
 		- sample test python code for SVD++ model
+- Performance:
+	- The followings are result of training and testing u1.base/u1.test ~ u5.base/u5.test for each model
+		- SVD
+			- predicting and calculating accuracy for each epoch during training takes 30 seconds per data just like below
+			- training without predicting and calculating accuracy for each epoch takes 18 seconds per data
+			```
+			1 : fitting_time:  30.722877502441406  RMSE:  0.954895910723837
+			2 : fitting_time:  31.644322872161865  RMSE:  0.9433722289233468
+			3 : fitting_time:  30.86494255065918   RMSE:  0.9368323890346241
+			4 : fitting_time:  30.70744824409485   RMSE:  0.9348560600403226
+			5 : fitting_time:  29.99300265312195   RMSE:  0.9348648767056837
+			```
+		- SVDpp
+			- below is the result of training with calculation of accuracy for each epoch
+			- training withoug prediction and accuracy calculation takes less time than below
+			```
+			1 : fitting_time:  2237.259344100952   RMSE:  0.9565127646796253
+			2 : fitting_time:  2206.93874835968    RMSE:  0.9430464226167146
+			3 : fitting_time:  2255.2258381843567  RMSE:  0.9379456542807102
+			4 : fitting_time:  2280.0132048130035  RMSE:  0.934219679036113
+			5 : fitting_time:  2328.8883419036865  RMSE:  0.9360517273697629
+			```
 - Paper
 	- Factorization Meets the Neighborhood: a Multifaceted Collaborative Filtering Model
 		- https://dl.acm.org/doi/pdf/10.1145/1401890.1401944
