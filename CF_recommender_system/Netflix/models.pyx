@@ -56,7 +56,6 @@ class SVD():
 			self.p=np.random.normal(self.init_mean, self.init_std, (int(num_user),self.num_factors))
 			self.q=np.random.normal(self.init_mean, self.init_std, (int(num_item),self.num_factors))
 		else:
-			load_parameters()
 			(num_user,num_item)=np.shape(self.trainset)
 			self.num_user=num_user
 			self.num_item=num_item
@@ -227,7 +226,6 @@ class SVDpp():
 			self.q=np.random.normal(self.init_mean, self.init_std, (int(num_item),self.num_factors))
 			self.y=np.random.normal(self.init_mean, self.init_std, (int(num_item),self.num_factors))
 		else:
-			load_parameters()
 			(num_user,num_item)=np.shape(self.trainset)
 			self.num_user=num_user
 			self.num_item=num_item
