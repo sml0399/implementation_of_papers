@@ -4,9 +4,10 @@ import os
 #from numba import vectorize, cuda
 cimport numpy as np  # noqa
 import data_loader as dl
+import accuracy
 
 class SVD():
-	def __init__(self,num_factors=100,num_epochs=30,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ): 
+	def __init__(self,num_factors=50,num_epochs=30,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ): 
 		self.trainset=0
 		self.mu=0 # global mean mu
 		self.bu=0 # user bias
@@ -21,10 +22,10 @@ class SVD():
 		self.num_epochs=num_epochs
 		self.rating_min=rating_min
 		self.rating_max=rating_max
-		self.user_index=0
-		self.item_index=0
+		self.num_user=0
+		self.num_item=0
 
-	def reset_parameters(self,num_factors=100,num_epochs=30,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ):
+	def reset_parameters(self,num_factors=50,num_epochs=30,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ):
 		self.trainset=0
 		self.mu=0 
 		self.bu=0 
@@ -39,33 +40,31 @@ class SVD():
 		self.num_epochs=num_epochs
 		self.rating_min=rating_min
 		self.rating_max=rating_max
-		self.user_index=0
-		self.item_index=0
+		self.num_user=0
+		self.num_item=0
 
 
-
-	def fit(self, trainset,load_parameters=False):
-		self.reset_parameters()
+	def fit(self, trainset,load_parameters=False): #trainset must be given as matrix
 		if(not load_parameters):
 			self.trainset=trainset
-			(mu2,num_user,num_item,user_index,item_index)=dl.get_dataset_info(trainset)
-			self.user_index=user_index
-			self.item_index=item_index
-			self.mu=mu2
+			self.mu=trainset[trainset>0].mean()
+			(num_user,num_item)=np.shape(self.trainset)
+			self.num_user=num_user
+			self.num_item=num_item
 			self.bu=np.zeros(int(num_user), np.float64)
 			self.bi=np.zeros(int(num_item), np.float64)
 			self.p=np.random.normal(self.init_mean, self.init_std, (int(num_user),self.num_factors))
 			self.q=np.random.normal(self.init_mean, self.init_std, (int(num_item),self.num_factors))
-		if(load_parameters):
+		else:
 			load_parameters()
-			(mu2,num_user,num_item,user_index,item_index)=dl.get_dataset_info(self.trainset)
-
-		trainset=self.trainset
+			(num_user,num_item)=np.shape(self.trainset)
+			self.num_user=num_user
+			self.num_item=num_item
+		cdef np.ndarray[int, ndim=2] trainsets=trainset
 		cdef int num_epochs=self.num_epochs
 		cdef np.ndarray[np.double_t] bu=self.bu
 		cdef np.ndarray[np.double_t] bi=self.bi
 		cdef double mu=self.mu
-		cdef int num_factors=self.num_factors
 		cdef np.ndarray[np.double_t, ndim=2] p=self.p
 		cdef np.ndarray[np.double_t, ndim=2] q=self.q
 		cdef double lr=self.lr
@@ -73,20 +72,15 @@ class SVD():
 
 		cdef int user=0
 		cdef int item=0
-		cdef int rating=0
 		cdef double err
 		cdef np.ndarray[np.double_t] before_p
 		cdef np.ndarray[np.double_t] before_q
-
+		pairs=np.argwhere(trainsets>0)
+		rmse_set=np.array([[user+1,item+1,trainsets[user][item]] for user,item in pairs])
 		for epoch in range(num_epochs):
-			print("epoch: ",epoch)###
-			#loop_index=0###
-			for user, item, rating in trainset:
-				#if(loop_index%100==0):
-				#	print("loop: ", loop_index)###
-				user=user_index.index(user)
-				item=item_index.index(item)
-				err=rating-mu-bu[user]-bi[item]-np.dot(q[item],p[user])
+			#print("epoch: ",epoch)###
+			for (user,item) in pairs:
+				err=trainsets[user][item]-mu-bu[user]-bi[item]-np.dot(q[item],p[user])
 				bu[user]+=lr*(err-reg_constant*bu[user])
 				bi[item]+=lr*(err-reg_constant*bi[item])
 				before_p=p[user]
@@ -94,13 +88,14 @@ class SVD():
 				p[user]+=lr*(err*before_q-reg_constant*before_p)
 				q[item]+=lr*(err*before_p-reg_constant*before_q)
 				#loop_index+=1###
+			predicted=self.predict(rmse_set)
+			print("epoch: ",epoch," RMSE: ",accuracy.RMSE(predicted))
 
 
 		self.num_epochs=num_epochs
 		self.bu=bu
 		self.bi=bi
 		self.mu=mu
-		self.num_factors=num_factors
 		self.p=p
 		self.q=q
 		self.lr=lr
@@ -116,16 +111,17 @@ class SVD():
 		cdef int user=0
 		cdef int item=0
 		cdef int rating=0
+		cdef int index_user=0
+		cdef int index_item=0
+		cdef double prediction=0
 		for user, item , rating in dataset:
 			prediction=self.mu
-			if(user in self.user_index):
-				index_user=self.user_index.index(user)
-				prediction+=self.bu[index_user]
-			if(item in self.item_index):
-				index_item=self.item_index.index(item)
-				prediction+=self.bi[index_item]
-			if((item in self.item_index)and(user in self.user_index)):
-				prediction+=np.dot(self.q[index_item],self.p[index_user])
+			if(user<=self.num_user):
+				prediction+=self.bu[user-1]
+			if(item<=self.num_item):
+				prediction+=self.bi[item-1]
+			if((user<=self.num_user)and(item<=self.num_item)):
+				prediction+=np.dot(self.q[item-1],self.p[user-1])
 			if(prediction>self.rating_max):
 				prediction=self.rating_max
 			elif(prediction<self.rating_min):
@@ -137,29 +133,29 @@ class SVD():
 		return np.asarray(result,dtype=object)
 		
 
-	def save_parameters(self):
+	def save_parameters(self, name="SVD.txt"):
 		parameters=[]
-		parameters.append(str(np.float64(self.mu)))
-		parameters.append('\t'.join([str(b) for b in self.bu]))
-		parameters.append('\t'.join([str(b) for b in self.bi]))
+		parameters.append(str(np.float64(self.mu)))						# mu
+		parameters.append('\t'.join([str(b) for b in self.bu]))					# bu
+		parameters.append('\t'.join([str(b) for b in self.bi]))					# bi
 		(a,b)=np.shape(self.p)
 		parameters.append(str(a)+'\t'+str(b))
-		parameters.append('\t'.join([str(aa) for bb in self.p for aa in bb ]))
+		parameters.append('\t'.join([str(aa) for bb in self.p for aa in bb ]))			# p
 		(c,d)=np.shape(self.q)
 		parameters.append(str(c)+'\t'+str(d))
-		parameters.append('\t'.join([str(aa) for bb in self.q for aa in bb ]))
+		parameters.append('\t'.join([str(aa) for bb in self.q for aa in bb ]))			# q
 		(e,f)=np.shape(self.trainset)
 		parameters.append(str(e)+'\t'+str(f))
-		parameters.append('\t'.join([str(aa) for bb in self.trainset for aa in bb ]))
-		f = open(os.path.dirname(os.path.realpath(__file__))+"/parameters/SVD.txt","w+")
+		parameters.append('\t'.join([str(aa) for bb in self.trainset for aa in bb ]))		# trainset
+		f = open(os.path.dirname(os.path.realpath(__file__))+"/parameters/"+name,"w+")
 		f.write('\n'.join(parameters))
 		f.close()
 		print("success : saving parameters")
 
 
-	def load_parameters(self):
+	def load_parameters(self, name="SVD.txt"):
 
-		f = open(os.path.dirname(os.path.realpath(__file__))+"/parameters/SVD.txt","r")
+		f = open(os.path.dirname(os.path.realpath(__file__))+"/parameters/"+name,"r")
 		read_text=f.read()
 		f.close()
 		read_text=read_text.split('\n')
@@ -178,7 +174,7 @@ class SVD():
 
 
 class SVDpp():
-	def __init__(self,num_factors=100,num_epochs=30,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ):
+	def __init__(self,num_factors=50,num_epochs=30,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ):
 		self.trainset=0
 		self.mu=0 # global mean mu
 		self.bu=0 # user bias
@@ -197,7 +193,7 @@ class SVDpp():
 		self.user_index=0
 		self.item_index=0
 
-	def reset_parameters(self,num_factors=100,num_epochs=30,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ):
+	def reset_parameters(self,num_factors=50,num_epochs=30,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ):
 		self.trainset=0
 		self.mu=0 
 		self.bu=0 
@@ -218,68 +214,57 @@ class SVDpp():
 
 
 
-	def fit(self, trainset,load_parameters=False):
-		self.reset_parameters()
+	def fit(self, trainset,load_parameters=False): #trainset must be given as matrix
 		if(not load_parameters):
 			self.trainset=trainset
-			(mu2,num_user,num_item,user_index,item_index)=dl.get_dataset_info(self.trainset)
-			self.user_index=user_index
-			self.item_index=item_index
-			self.mu=mu2
+			self.mu=trainset[trainset>0].mean()
+			(num_user,num_item)=np.shape(self.trainset)
+			self.num_user=num_user
+			self.num_item=num_item
 			self.bu=np.zeros(int(num_user), np.float64)
 			self.bi=np.zeros(int(num_item), np.float64)
 			self.p=np.random.normal(self.init_mean, self.init_std, (int(num_user),self.num_factors))
 			self.q=np.random.normal(self.init_mean, self.init_std, (int(num_item),self.num_factors))
 			self.y=np.random.normal(self.init_mean, self.init_std, (int(num_item),self.num_factors))
-		if(load_parameters):
+		else:
 			load_parameters()
-			(mu2,num_user,num_item,user_index,item_index)=dl.get_dataset_info(self.trainset)
-			self.user_index=user_index
-			self.item_index=item_index
-			self.mu=mu2
-
+			(num_user,num_item)=np.shape(self.trainset)
+			self.num_user=num_user
+			self.num_item=num_item
+		cdef np.ndarray[int, ndim=2] trainsets=trainset
 		cdef int num_epochs=self.num_epochs
 		cdef np.ndarray[np.double_t] bu=self.bu
 		cdef np.ndarray[np.double_t] bi=self.bi
 		cdef double mu=self.mu
-		cdef int num_factors=self.num_factors
 		cdef np.ndarray[np.double_t, ndim=2] p=self.p
 		cdef np.ndarray[np.double_t, ndim=2] q=self.q
+		cdef np.ndarray[np.double_t, ndim=2] y=self.y
 		cdef double lr=self.lr
 		cdef double reg_constant=self.reg_constant
+
 		cdef int user=0
 		cdef int item=0
-		cdef int rating=0
-		cdef np.ndarray[np.double_t, ndim=1] uif=np.zeros(self.num_factors,np.float64)
-		cdef np.ndarray[np.double_t, ndim=2] y=self.y
-		cdef int old_user=-1
-		cdef double err=0
-		cdef int prefered_item=0
-		cdef int prefered_items=0
+		cdef double err
 		cdef np.ndarray[np.double_t] before_p
 		cdef np.ndarray[np.double_t] before_q
-		cdef np.ndarray[int, ndim=1] user_prefered_item
-		cdef int j
-		cdef int k
 
-		for epoch in range(self.num_epochs):
 
-			print("epoch: ",epoch)###
-			loop_index=0###
-			for user, item, rating in self.trainset:
-				if(loop_index%1000==0):
-					print("loop: ",loop_index)####
-				if(user!=old_user):
-					user_prefered_item=np.array([j for (k,j,_) in trainset if k==user ],dtype=np.intc)
-				old_user=user
-				# convert to index
-				user=user_index.index(user)
-				item=item_index.index(item)
-				uif=np.zeros(num_factors,np.float64)
+		cdef int prefered_items=0
+
+
+		pairs=np.argwhere(trainsets>0)
+		rmse_set=np.array([[user+1,item+1,trainsets[user][item]] for user,item in pairs])
+		for epoch in range(num_epochs):
+			#loop_index=0###
+			#print("epoch: ",epoch)###
+			for (user,item) in pairs:
+				#if(loop_index%1000==0):
+				#	print("loop: ",loop_index)####
+				user_prefered_item=np.argwhere(trainsets[user]>0)
+				uif=np.zeros(self.num_factors,np.float64)
 				for prefered_items in user_prefered_item:
-					prefered_item=item_index.index(prefered_items)
-					uif+=y[prefered_item]/np.sqrt(len(user_prefered_item))
-				err=rating-mu-bu[user]-bi[item]-np.dot(q[item],(p[user]+uif))
+					uif+=y[prefered_items]/np.sqrt(len(user_prefered_item))
+				err=trainsets[user][item]-mu-bu[user]-bi[item]-np.dot(q[item],(p[user]+uif))
 				bu[user]+=lr*(err-reg_constant*bu[user])
 				bi[item]+=lr*(err-reg_constant*bi[item])
 				before_p=p[user]
@@ -287,22 +272,21 @@ class SVDpp():
 				p[user]+=lr*(err*before_q-reg_constant*before_p)
 				q[item]+=lr*(err*before_p-reg_constant*before_q)
 				for prefered_items in user_prefered_item:
-					prefered_item=item_index.index(prefered_items)
-					y[prefered_item]+=lr*(err*before_q/np.sqrt(len(user_prefered_item))-reg_constant*y[prefered_item])
+					y[prefered_items]+=lr*(err*before_q/np.sqrt(len(user_prefered_item))-reg_constant*y[prefered_items])
 
-				loop_index+=1#####
-		print("fitting end")###
+				#loop_index+=1#####
+			predicted=self.predict(rmse_set)
+			print("epoch: ",epoch," RMSE: ",accuracy.RMSE(predicted))
+
 
 		self.num_epochs=num_epochs
 		self.bu=bu
 		self.bi=bi
 		self.mu=mu
-		self.num_factors=num_factors
 		self.p=p
 		self.q=q
 		self.lr=lr
 		self.reg_constant=reg_constant
-		self.y=y
 
 
 		return 0.0
@@ -310,46 +294,37 @@ class SVDpp():
 
 
 	def predict(self,dataset):
-		print("prediction")###
 		result=[]
 		cdef np.double_t[:,:] p=self.p
 		cdef np.double_t[:,:] q=self.q
 		cdef np.double_t[:,:] y=self.y
-		cdef int[:] user_prefered_item
 		cdef np.double_t[:] bu=self.bu
 		cdef np.double_t[:] bi=self.bi
 		cdef double mu=self.mu
 		cdef int user=0
-		cdef int old_user=-1
 		cdef int item=0
 		cdef int rating=0
 		cdef double prediction=0
 		for user, item , rating in dataset:
 			
 			prediction=mu
-			if(user in self.user_index):
-				index_user=self.user_index.index(user)
-				prediction+=bu[index_user]
-			if(item in self.item_index):
-				index_item=self.item_index.index(item)
-				prediction+=bi[index_item]
-			if((item in self.item_index)and(user in self.user_index)):
-				if(user!=old_user):
-					user_prefered_item=np.array([j for (k,j,_) in self.trainset if k==user ],dtype=np.intc)
-				old_user=user
-				prediction+=np.dot(q[index_item],p[index_user]+(sum(y[self.item_index.index(j)] for j in user_prefered_item) / np.sqrt(len(user_prefered_item))))
+			prediction=self.mu
+			if(user<=self.num_user):
+				prediction+=self.bu[user-1]
+			if(item<=self.num_item):
+				prediction+=self.bi[item-1]
+			if((user<=self.num_user)and(item<=self.num_item)):
+				user_prefered_item=np.where(self.trainset[user-1]>0)[0]
+				prediction=prediction+np.dot(self.q[item-1],self.p[user-1]+(np.array([y[j] for j in user_prefered_item]).sum() / np.sqrt(len(user_prefered_item))))
 			if(prediction>self.rating_max):
 				prediction=self.rating_max
 			elif(prediction<self.rating_min):
 				prediction=self.rating_min
-			else:
-				prediction=prediction
 			result.append(np.asarray([user,item, rating, prediction], dtype=np.float64))
 	#		print(result[-1][2], result[-1][3])
 		return np.asarray(result,dtype=object)
-		
 
-	def save_parameters(self):
+	def save_parameters(self, name="SVDpp.txt"):
 		parameters=[]
 		parameters.append(str(np.float64(self.mu)))
 		parameters.append('\t'.join([str(b) for b in self.bu]))
@@ -364,15 +339,15 @@ class SVDpp():
 		parameters.append(str(e)+'\t'+str(f))
 		parameters.append('\t'.join([str(aa) for bb in self.trainset for aa in bb ]))
 		parameters.append(str(np.float64(self.y)))
-		f = open(os.path.dirname(os.path.realpath(__file__))+"/parameters/SVDpp.txt","w+")
+		f = open(os.path.dirname(os.path.realpath(__file__))+"/parameters/"+name,"w+")
 		f.write('\n'.join(parameters))
 		f.close()
 		print("success : saving parameters")
 
 
-	def load_parameters(self):
+	def load_parameters(self, name="SVDpp.txt"):
 
-		f = open(os.path.dirname(os.path.realpath(__file__))+"/parameters/SVDpp.txt","r")
+		f = open(os.path.dirname(os.path.realpath(__file__))+"/parameters/"+name,"r")
 		read_text=f.read()
 		f.close()
 		read_text=read_text.split('\n')

@@ -12,6 +12,14 @@ import itertools as ite
 # dataset=dl.loader_1M()
 # splitted_dataset=dl.split_dataset( dataset )
 
+def dataset_to_matrix(dataset):
+	user=list(set([i[0] for i in dataset]))
+	item=list(set([i[1] for i in dataset]))
+	rating_matrix=np.zeros((max(user),max(item)),dtype=np.intc)
+	for data in dataset:
+		rating_matrix[data[0]-1][data[1]-1]=int(data[2])
+	return rating_matrix
+
 def loader_1M():
 
 	# load 1M dataset from the directory
