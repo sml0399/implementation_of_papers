@@ -4,7 +4,7 @@
 		- (https://riptutorial.com/ko/cython shows how to compile and execute files - written in korean)
 	- 2. execute the code to test/predict with the model (ex: python3 test_SVD.py )
 	- Usage Example: (Reading test file is useful)
-    '''python
+    ```python
     import pyximport
     pyximport.install()
     import data_loader as dl
@@ -23,7 +23,7 @@
     estimate=svd.predict(test1)        # predict testset
     rmse=accuracy.RMSE(estimate)       # calculate accuracy of prediction
     print(rmse)
-    '''	
+    ```	
 - Explanation of the files
 	- Netflix.ppt : ppt file used for seminar(briefly explains the paper)
 	- .gitignore, _init_.py : _init_.py to make this folder as python module, .gitignore to manage repository
