@@ -5,7 +5,7 @@ import os
 cimport numpy as np  # noqa
 import data_loader as dl
 import accuracy
-
+import time
 class SVD():
 	def __init__(self,num_factors=50,num_epochs=30,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ): 
 		self.trainset=0
@@ -44,7 +44,7 @@ class SVD():
 		self.num_item=0
 
 
-	def fit(self, trainset,load_parameters=False): #trainset must be given as matrix
+	def fit(self, trainset,load_parameters=False,calculate_accuracy=False): #trainset must be given as matrix
 		if(not load_parameters):
 			self.trainset=trainset
 			self.mu=trainset[trainset>0].mean()
@@ -75,7 +75,9 @@ class SVD():
 		cdef np.ndarray[np.double_t] before_p
 		cdef np.ndarray[np.double_t] before_q
 		pairs=np.argwhere(trainsets>0)
-		rmse_set=np.array([[user+1,item+1,trainsets[user][item]] for user,item in pairs])
+		#pairs=zip(trainsets.nonzero())
+		if(calculate_accuracy):
+			rmse_set=np.array([[user+1,item+1,trainsets[user][item]] for user,item in pairs])
 		for epoch in range(num_epochs):
 			#print("epoch: ",epoch)###
 			for (user,item) in pairs:
@@ -87,18 +89,16 @@ class SVD():
 				p[user]+=lr*(err*before_q-reg_constant*before_p)
 				q[item]+=lr*(err*before_p-reg_constant*before_q)
 				#loop_index+=1###
-			predicted=self.predict(rmse_set)
-			print("epoch: ",epoch," RMSE: ",accuracy.RMSE(predicted))
+			if(calculate_accuracy):
+				predicted=self.predict(rmse_set)
+				print("epoch: ",epoch," RMSE: ",accuracy.RMSE(predicted))
 
 
-		self.num_epochs=num_epochs
+
 		self.bu=bu
 		self.bi=bi
-		self.mu=mu
 		self.p=p
 		self.q=q
-		self.lr=lr
-		self.reg_constant=reg_constant
 
 
 		return 0.0
@@ -121,12 +121,8 @@ class SVD():
 				prediction+=self.bi[item-1]
 			if((user<=self.num_user)and(item<=self.num_item)):
 				prediction+=np.dot(self.q[item-1],self.p[user-1])
-			if(prediction>self.rating_max):
-				prediction=self.rating_max
-			elif(prediction<self.rating_min):
-				prediction=self.rating_min
-			else:
-				prediction=prediction
+			prediction=min(self.rating_max,prediction)
+			prediction=max(self.rating_min,prediction)
 			result.append(np.asarray([user,item, rating, prediction], dtype=np.float64))
 	#		print(result[-1][2], result[-1][3])
 		return np.asarray(result,dtype=object)
@@ -191,6 +187,7 @@ class SVDpp():
 		self.rating_max=rating_max
 		self.user_index=0
 		self.item_index=0
+		self.user_prefered_item=0
 
 	def reset_parameters(self,num_factors=50,num_epochs=30,init_mean=0,init_std=0.1, lr=0.005, reg_constant=0.1,rating_min=1, rating_max=5 ):
 		self.trainset=0
@@ -210,10 +207,11 @@ class SVDpp():
 		self.rating_max=rating_max
 		self.user_index=0
 		self.item_index=0
+		self.user_prefered_item=0
 
 
 
-	def fit(self, trainset,load_parameters=False): #trainset must be given as matrix
+	def fit(self, trainset,load_parameters=False,calculate_accuracy=False): #trainset must be given as matrix
 		if(not load_parameters):
 			self.trainset=trainset
 			self.mu=trainset[trainset>0].mean()
@@ -248,43 +246,39 @@ class SVDpp():
 
 
 		cdef int prefered_items=0
-
-
+		self.user_prefered_item=np.array([np.where(trainsets[user]>0)[0] for user in range(num_user)],dtype=object)
 		pairs=np.argwhere(trainsets>0)
-		rmse_set=np.array([[user+1,item+1,trainsets[user][item]] for user,item in pairs])
+		if(calculate_accuracy):
+			rmse_set=np.array([[user+1,item+1,trainsets[user][item]] for user,item in pairs])
 		for epoch in range(num_epochs):
 			#loop_index=0###
 			#print("epoch: ",epoch)###
+			olduser=-1
 			for (user,item) in pairs:
 				#if(loop_index%1000==0):
 				#	print("loop: ",loop_index)####
-				user_prefered_item=np.argwhere(trainsets[user]>0)
-				uif=np.zeros(self.num_factors,np.float64)
-				for prefered_items in user_prefered_item:
-					uif+=y[prefered_items]/np.sqrt(len(user_prefered_item))
+				if(olduser!=user):
+					uif=y[self.user_prefered_item[user]].sum(axis=0)/np.sqrt(len(self.user_prefered_item[user]))
+				olduser=user
 				err=trainsets[user][item]-mu-bu[user]-bi[item]-np.dot(q[item],(p[user]+uif))
 				bu[user]+=lr*(err-reg_constant*bu[user])
 				bi[item]+=lr*(err-reg_constant*bi[item])
 				before_p=p[user]
 				before_q=q[item]
 				p[user]+=lr*(err*before_q-reg_constant*before_p)
-				q[item]+=lr*(err*before_p-reg_constant*before_q)
-				for prefered_items in user_prefered_item:
-					y[prefered_items]+=lr*(err*before_q/np.sqrt(len(user_prefered_item))-reg_constant*y[prefered_items])
+				q[item]+=lr*(err*(before_p+uif)-reg_constant*before_q)
+				y[self.user_prefered_item[user]]+=lr*(err*before_q/np.sqrt(len(self.user_prefered_item[user]))-reg_constant*y[self.user_prefered_item[user]])
 
 				#loop_index+=1#####
-			predicted=self.predict(rmse_set)
-			print("epoch: ",epoch," RMSE: ",accuracy.RMSE(predicted))
+			if(calculate_accuracy):
+				predicted=self.predict(rmse_set)
+				print("epoch: ",epoch," RMSE: ",accuracy.RMSE(predicted))
 
-
-		self.num_epochs=num_epochs
 		self.bu=bu
 		self.bi=bi
-		self.mu=mu
 		self.p=p
 		self.q=q
-		self.lr=lr
-		self.reg_constant=reg_constant
+		self.y=y
 
 
 		return 0.0
@@ -312,12 +306,9 @@ class SVDpp():
 			if(item<=self.num_item):
 				prediction+=self.bi[item-1]
 			if((user<=self.num_user)and(item<=self.num_item)):
-				user_prefered_item=np.where(self.trainset[user-1]>0)[0]
-				prediction=prediction+np.dot(self.q[item-1],self.p[user-1]+(np.array([y[j] for j in user_prefered_item]).sum() / np.sqrt(len(user_prefered_item))))
-			if(prediction>self.rating_max):
-				prediction=self.rating_max
-			elif(prediction<self.rating_min):
-				prediction=self.rating_min
+				prediction=prediction+np.dot(self.q[item-1],self.p[user-1]+(np.array([y[j] for j in self.user_prefered_item[user-1]]).sum() / np.sqrt(len(self.user_prefered_item[user-1]))))
+			prediction=min(self.rating_max,prediction)
+			prediction=max(self.rating_min,prediction)
 			result.append(np.asarray([user,item, rating, prediction], dtype=np.float64))
 	#		print(result[-1][2], result[-1][3])
 		return np.asarray(result,dtype=object)
