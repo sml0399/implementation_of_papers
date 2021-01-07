@@ -91,25 +91,21 @@
 - Performance:
 	- The followings are result of training and testing u1.base/u1.test ~ u5.base/u5.test for each model
 		- SVD
-			- predicting and calculating accuracy for each epoch during training takes 30 seconds per data just like below
-			- training without predicting and calculating accuracy for each epoch takes 18 seconds per data
-			```
-			1 : fitting_time:  30.722877502441406  RMSE:  0.954895910723837
-			2 : fitting_time:  31.644322872161865  RMSE:  0.9433722289233468
-			3 : fitting_time:  30.86494255065918   RMSE:  0.9368323890346241
-			4 : fitting_time:  30.70744824409485   RMSE:  0.9348560600403226
-			5 : fitting_time:  29.99300265312195   RMSE:  0.9348648767056837
-			```
+		```
+		1 : fitting_time:  18.361492156982422  RMSE:  0.9555118598821402
+		2 : fitting_time:  18.773226261138916  RMSE:  0.94400813272208
+		3 : fitting_time:  18.723963260650635  RMSE:  0.936817176058883
+		4 : fitting_time:  18.689794301986694  RMSE:  0.9345478183384598
+		5 : fitting_time:  18.958670139312744  RMSE:  0.9350943973502772
+		```
 		- SVDpp
-			- below is the result of training with calculation of accuracy for each epoch
-			- training withoug prediction and accuracy calculation takes less time than below
-			```
-			1 : fitting_time:  2237.259344100952   RMSE:  0.9565127646796253
-			2 : fitting_time:  2206.93874835968    RMSE:  0.9430464226167146
-			3 : fitting_time:  2255.2258381843567  RMSE:  0.9379456542807102
-			4 : fitting_time:  2280.0132048130035  RMSE:  0.934219679036113
-			5 : fitting_time:  2328.8883419036865  RMSE:  0.9360517273697629
-			```
+		```
+		1 : fitting_time:  105.3489978313446   RMSE:  0.9512272983085271
+		2 : fitting_time:  104.22766757011414  RMSE:  0.9398178451260085
+		3 : fitting_time:  105.5626630783081   RMSE:  0.9321350503463812
+		4 : fitting_time:  106.9869954586029   RMSE:  0.93011797068326
+		5 : fitting_time:  109.85181403160095  RMSE:  0.9327594795660497
+		```
 - Paper
 	- Factorization Meets the Neighborhood: a Multifaceted Collaborative Filtering Model
 		- https://dl.acm.org/doi/pdf/10.1145/1401890.1401944

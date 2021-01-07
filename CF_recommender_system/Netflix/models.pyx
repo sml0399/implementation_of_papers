@@ -257,8 +257,7 @@ class SVDpp():
 			for (user,item) in pairs:
 				#if(loop_index%1000==0):
 				#	print("loop: ",loop_index)####
-				if(olduser!=user):
-					uif=y[self.user_prefered_item[user]].sum(axis=0)/np.sqrt(len(self.user_prefered_item[user]))
+				uif=y[self.user_prefered_item[user]].sum(axis=0)/np.sqrt(len(self.user_prefered_item[user]))
 				olduser=user
 				err=trainsets[user][item]-mu-bu[user]-bi[item]-np.dot(q[item],(p[user]+uif))
 				bu[user]+=lr*(err-reg_constant*bu[user])
