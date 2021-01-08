@@ -3,10 +3,8 @@
 - Explicit feedback
 	- Matrix factorization based
 		- Netflix papers: 
-			- Factorization Meets the Neighborhood: a Multifaceted Collaborative Filtering Model
-				- https://dl.acm.org/doi/pdf/10.1145/1401890.1401944
-			- Matrix Factorization Techniques for Recommender Systems
-				- https://datajobs.com/data-science-repo/Recommender-Systems-%5bNetflix%5d.pdf
+			- [Factorization Meets the Neighborhood: a Multifaceted Collaborative Filtering Model](https://dl.acm.org/doi/pdf/10.1145/1401890.1401944)
+			- [Matrix Factorization Techniques for Recommender Systems](https://datajobs.com/data-science-repo/Recommender-Systems-%5bNetflix%5d.pdf)
 		- PMF papers: 
 			- Probabilistic Matrix Factorization
 				- https://papers.nips.cc/paper/2007/file/d7322ed717dedf1eb4e6e52a37ea7bcd-Paper.pdf
