@@ -43,7 +43,7 @@
 		- load one of 5-folded dataset(train_set - 80% of total data)
 	- loader_100k_t1() ~ loader_100k_t5() : 
 		- load one of 5-folded dataset(test_set - 20% of total data)
-	- dataset_to_matrix(dataset) :  
+	- dataset_to_matrix(dataset) :
 		- convert dataset to matrix. 
 - install_requirements.sh : shell script for installing necessary libraries
 	- install numpy,gcc and cython to anaconda3
@@ -107,7 +107,7 @@
 	5 : fitting_time:  109.85181403160095  RMSE:  0.9327594795660497
 	```
 ## Paper
-- [Factorization Meets the Neighborhood: a Multifaceted Collaborative Filtering Model](https://dl.acm.org/doi/pdf/10.1145/1401890.1401944)  
-- [Matrix Factorization Techniques for Recommender Systems](https://datajobs.com/data-science-repo/Recommender-Systems-%5bNetflix%5d.pdf)  
+- [Factorization Meets the Neighborhood: a Multifaceted Collaborative Filtering Model](https://dl.acm.org/doi/pdf/10.1145/1401890.1401944)
+- [Matrix Factorization Techniques for Recommender Systems](https://datajobs.com/data-science-repo/Recommender-Systems-%5bNetflix%5d.pdf)
 - Explanation about paper:
 	
