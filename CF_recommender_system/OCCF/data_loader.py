@@ -18,7 +18,7 @@ total_1M_user=6040
 total_1M_item=3952
 
 
-def dataset_to_matrix(dataset):
+def dataset_to_matrix(dataset):# for Netflix
 	user=list(set([i[0] for i in dataset]))
 	item=list(set([i[1] for i in dataset]))
 	rating_matrix=np.zeros((max(user),max(item)),dtype=np.intc)
@@ -37,7 +37,7 @@ def total_data_info(dataset_type="100k"):
 
 
 
-def dataset_to_rating(dataset,data_type="100k"):
+def dataset_to_rating(dataset,data_type="100k"): # for OCCF
 	rating_matrix=np.zeros(total_data_info(data_type),dtype=np.intc)
 	for data in dataset:
 		rating_matrix[data[0]-1][data[1]-1]=int(data[2])
@@ -45,13 +45,14 @@ def dataset_to_rating(dataset,data_type="100k"):
 
 
 
-def rating_to_preference(rating):
-	return np.array(np.vectorize(lambda x: 1 if x>0 else 0)(rating), dtype = np.float64)
+def rating_to_preference(rating): # for OCCF
+	return np.array(np.vectorize(lambda x: 1 if x>0 else 0)(rating), dtype = np.intc)
 
-def rating_to_confidence(rating,option=1):
+def rating_to_confidence(rating,option=1): # for OCCF
+	rating=np.array(rating,dtype=np.float64)
 	if(option==1):
 		confidence_matrix=1+40*rating
-	elif(option==2)
+	elif(option==2):
 		confidence_matrix=1+40*np.log(1+rating/(10**(-8)))
 	return confidence_matrix
 
@@ -147,6 +148,19 @@ def loader_100k_5():
 	new_text=np.asarray([np.asarray([int(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
 	return new_text
 
+def loader_100k_a():
+	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/ua.base',"r")
+	text=f.read().split('\n')
+	new_text=np.asarray([np.asarray([int(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	return new_text
+
+def loader_100k_b():
+	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/ub.base',"r")
+	text=f.read().split('\n')
+	new_text=np.asarray([np.asarray([int(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	return new_text
+
+
 
 
 # test_set given by 100k
@@ -176,6 +190,18 @@ def loader_100k_t4():
 
 def loader_100k_t5(): 
 	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/u5.test',"r")
+	text=f.read().split('\n')
+	new_text=np.asarray([np.asarray([int(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	return new_text
+
+def loader_100k_ta(): 
+	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/ua.test',"r")
+	text=f.read().split('\n')
+	new_text=np.asarray([np.asarray([int(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
+	return new_text
+
+def loader_100k_tb(): 
+	f = open(os.path.dirname(__file__) + '/../../dataset/MovieLens/100k_dataset/ub.test',"r")
 	text=f.read().split('\n')
 	new_text=np.asarray([np.asarray([int(element) for element in row.split("\t")[0:3]]) for row in text[0:-1]])
 	return new_text
