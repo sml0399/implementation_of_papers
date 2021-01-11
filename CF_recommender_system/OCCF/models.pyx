@@ -46,8 +46,8 @@ class OCCF():
 			(num_users,num_items)=np.shape(trainset)
 			self.num_user=num_users
 			self.num_item=num_items
-			self.x=np.random.normal(self.init_mean, self.init_std, (int(num_users),self.num_factors))
-			self.y=np.random.normal(self.init_mean, self.init_std, (int(num_items),self.num_factors))
+			self.x = np.random.normal(scale = 1.0/self.num_factors, size=(num_users, self.num_factors))
+			self.y = np.random.normal(scale = 1.0/self.num_factors, size=(num_items, self.num_factors))
 		else:
 			(num_users,num_items)=np.shape(self.trainset)
 			self.num_user=num_users
@@ -81,25 +81,29 @@ class OCCF():
 		for epoch in range(num_epochs):
 			start_time=time.time()
 			for user in range(num_user):
-				c_user=np.zeros((num_item,num_item),dtype=np.float64)
 				for i in range(num_item):
 					c_user[i,i]=confidences[user,i]
-				x[user,:]=np.linalg.solve(np.matmul(np.matmul(y.T,c_user),y)+reg_constant*np.eye(num_factors),np.matmul(np.matmul(y.T,c_user),preferences[user,:].T))
+				x[user,:]=np.linalg.solve(y.T@c_user@y+reg_constant*np.eye(num_factors),y.T@c_user@preferences[user,:].T)
 			for item in range(num_item):
-				c_item=np.zeros((num_user,num_user),dtype=np.float64)
 				for u in range(num_user):
 					c_item[u,u]=confidences[u,item]
-				y[item,:]=np.linalg.solve(np.matmul(np.matmul(x.T,c_item),x)+reg_constant*np.eye(num_factors),np.matmul(np.matmul(x.T,c_item),preferences[:,item]))
+				y[item,:]=np.linalg.solve(x.T@c_item@x+reg_constant*np.eye(num_factors),x.T@c_item@preferences[:,item])
 			time_took=time.time()-start_time
 			total_time=total_time+time_took
 			rank_weighted_sum_ratings=0;
-			predicted=np.array(np.matmul(x,y.T),dtype=np.float64)
+			predicted=np.array(x@y.T,dtype=np.float64)
 			for i in range(num_user):
-				for j in range(num_item):
-					if testsets[i,j]!=0:
-						sorted_result=sorted([predicted[i,k] for k in range(num_item) if trainsets[i,k]==0])
-						rank_weighted_sum_ratings+=testsets[i,j]*(1-(sorted_result.index(predicted[i,j])/len(sorted_result)))
+				partial_rank=(-1*predicted[i,:]).argsort().argsort()
+				rank_weighted_sum_ratings+=(testset[i,:]*partial_rank/len(partial_rank)).sum()
 
+
+			
+			#for i in range(num_user):
+			#	for j in range(num_item):
+			#		if testsets[i,j]!=0:
+			#			sorted_result=sorted([predicted[i,k] for k in range(num_item) if trainsets[i,k]==0])
+			#			rank_weighted_sum_ratings+=testsets[i,j]*(1-(sorted_result.index(predicted[i,j])/len(sorted_result)))
+			
 			occf_rank.append(rank_weighted_sum_ratings/sum_testset)
 			if(verbose):
 				print("fit time for epoch ",epoch,": ",time_took,", rank at current epoch: ",occf_rank[-1] )
@@ -117,7 +121,7 @@ class OCCF():
 	def predict(self):
 		cdef np.ndarray[np.double_t, ndim=2] x=self.x
 		cdef np.ndarray[np.double_t, ndim=2] y=self.y
-		return np.matmul(x,y.T)
+		return x@y.T
 		
 
 	def save_parameters(self, name="OCCF.txt"):
