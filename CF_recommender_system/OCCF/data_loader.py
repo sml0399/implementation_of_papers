@@ -17,6 +17,11 @@ total_100k_item=1682
 total_1M_user=6040
 total_1M_item=3952
 
+def total_data_info(dataset_type="100k"):
+	if(dataset_type=="100k"):
+		return (total_100k_user,total_100k_item)
+	if(dataset_type=="1M"):
+		return (total_1M_user,total_1M_item)
 
 def dataset_to_matrix(dataset):# for Netflix
 	user=list(set([i[0] for i in dataset]))
@@ -25,16 +30,6 @@ def dataset_to_matrix(dataset):# for Netflix
 	for data in dataset:
 		rating_matrix[data[0]-1][data[1]-1]=int(data[2])
 	return rating_matrix
-
-
-
-
-def total_data_info(dataset_type="100k"):
-	if(dataset_type=="100k"):
-		return (total_100k_user,total_100k_item)
-	if(dataset_type=="1M"):
-		return (total_1M_user,total_1M_item)
-
 
 
 def dataset_to_rating(dataset,data_type="100k"): # for OCCF
