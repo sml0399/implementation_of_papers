@@ -1,2 +1,2 @@
-./epinion/downloader.sh
-./MovieLens/downloader.sh
+./epinion/conda_downloader.sh
+./MovieLens/conda_downloader.sh

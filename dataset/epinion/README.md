@@ -5,6 +5,10 @@
 	```console
 	foo@bar~/Desktop/implementation_of_papers/dataset/epinion$ ./downloader.sh
 	```
+	- If you are using anaconda environment
+	```console
+	foo@bar~/Desktop/implementation_of_papers/dataset/epinion$ ./conda_downloader.sh
+	```
 - There are two versions: epinion dataset & extended version
 	- I used only epinion(not extended version) for implementation of papers
 

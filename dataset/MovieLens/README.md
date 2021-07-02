@@ -6,3 +6,7 @@
 	```console
 	foo@bar~/Desktop/implementation_of_papers/dataset/MovieLens$ ./downloader.sh
 	```
+- If you are using anaconda environment
+	```console
+	foo@bar~/Desktop/implementation_of_papers/dataset/MovieLens$ ./conda_downloader.sh
+	```
