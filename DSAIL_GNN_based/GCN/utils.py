@@ -1,4 +1,15 @@
-import  argparse
+import argparse
+import torch
+
+def device_select(gpu_number):
+    device =""
+    if torch.cuda.is_available():
+        device ="cuda:"+str(gpu_number)
+    else:
+        device="cpu"
+    print("using device: "+device)
+    return device
+
 
 def parser():
     args = argparse.ArgumentParser()
@@ -12,9 +23,11 @@ def parser():
     args.add_argument('--weight_decay', type=float, default=5e-4, help="set weight decay. Default is 5e-4")
     args.add_argument('--early_stopping_size', type=int, default=10, help="set early stopping window size(successive number of occurence of val_error >= train_error). Default is 10")
     args.add_argument('--max_degree', type=int, default=3, help="set max degree. Default is 3")
+    args.add_argument('--gpu_number', type=int, default=0, help="set the gpu number to be used. Default is 0th GPU")
 
     return args.parse_args()
 
 # If this file is executed directly from terminal
 if __name__ == "__main__":
-	parser()
+    args=parser()
+    device_select(args.gpu_number)

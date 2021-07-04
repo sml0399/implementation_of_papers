@@ -9,6 +9,7 @@
 	- sickit-learn
 	- seaborn
 	- scipy
+	- spacy
 	- pytorch
 	- torchvision 
 	- torchaudio

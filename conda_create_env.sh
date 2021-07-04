@@ -11,3 +11,4 @@ conda install -y pytorch-geometric -c rusty1s -c conda-forge
 conda install -y -c anaconda networkx
 conda install -y -c anaconda seaborn
 conda install -y -c anaconda scipy
+conda install -c conda-forge spacy
