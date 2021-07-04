@@ -2,18 +2,18 @@
 ### conda environment setup
 - "conda_create_env.sh" will automatically create anaconda environment with some basic packages. You will be asked to decide the name of the environment. This code is based on anaconda3. The environment contains the followings. You can manually change part of the script depending on your choice.
 	- python 3.7
+	- cuda 10.2
 	- numpy
 	- pandas
 	- matplotlib
 	- sickit-learn
+	- seaborn
+	- scipy
 	- pytorch
-	- cuda 10.2
 	- torchvision 
 	- torchaudio
 	- torch_geometric
 	- networkx
-	- seaborn
-	- scipy
 - The codes in this repository may not work if you do not use conda environment.
 
 ### about directories...
