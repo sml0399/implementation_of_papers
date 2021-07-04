@@ -6,7 +6,7 @@
 	- pandas
 	- matplotlib
 	- sickit-learn
-	- pytorch (with )
+	- pytorch
 	- cuda 10.2
 	- torchvision 
 	- torchaudio
@@ -14,6 +14,8 @@
 	- networkx
 	- seaborn
 	- scipy
+
+- The codes in this repository may not work if you do not use conda environment.
 
 - The following directories are for Internship at KAIST ISysE DSAIL during 2020.12.28~2021.02.19
 	- DSAIL_CF_recommender_system
