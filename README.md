@@ -17,7 +17,7 @@
 - The codes in this repository may not work if you do not use conda environment.
 
 ### about directories...
-- The following directories are for Internship at KAIST ISysE DSAIL during 2020.12.28~2021.02.19
+- The following directories are for Internship at [KAIST ISysE DSAIL](https://dsail.kaist.ac.kr/) during 2020.12.28~2021.02.19
 	- DSAIL_CF_recommender_system
 	- DSAIL_GNN_based
 	- DSAIL_random_walk_based
