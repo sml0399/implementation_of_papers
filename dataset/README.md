@@ -14,10 +14,10 @@
 - [dataset](http://www.trustlet.org/epinions.html) for DSAIL_GNN_based, DSAIL_CF_recommender_system, DSAIL_random_walk_based 
 
 ## Cora
-- [dataset](http://www.cs.umd.edu/~sen/lbc-proj/LBC.html) DSAIL_GNN_based
+- [dataset](http://www.cs.umd.edu/~sen/lbc-proj/LBC.html) for DSAIL_GNN_based
 
 ## CiteSeer
-- [dataset](http://www.cs.umd.edu/~sen/lbc-proj/LBC.html) DSAIL_GNN_based
+- [dataset](http://www.cs.umd.edu/~sen/lbc-proj/LBC.html) for DSAIL_GNN_based
 
 ## WebKB
-- [dataset](http://www.cs.umd.edu/~sen/lbc-proj/LBC.html) DSAIL_GNN_based
+- [dataset](http://www.cs.umd.edu/~sen/lbc-proj/LBC.html) for DSAIL_GNN_based
