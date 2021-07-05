@@ -3,10 +3,10 @@ import torch.nn.functional as F
 import torch_geometric.nn as pyg # pytorch geometric
 
 class GCN(torch.nn.Module):
-    def __init__(self, channel_in, channel_middle, channel_out, do_normalization, use_bias):
+    def __init__(self, channel_in, channel_middle, channel_out, do_normalization=True, use_bias=True):
         super(GCN, self).__init__()
-        self.conv1 = pyg.GCNConv(in_channels=channel_in, out_channels=channel_middle, normalized=do_normalization, bias=use_bias)
-        self.conv2 = pyg.GCNConv(in_channels=channel_middle, out_channels=channel_out, normalized=do_normalization, bias=use_bias)
+        self.conv1 = pyg.GCNConv(in_channels=channel_in, out_channels=channel_middle, normalize=do_normalization, bias=use_bias)
+        self.conv2 = pyg.GCNConv(in_channels=channel_middle, out_channels=channel_out, normalize=do_normalization, bias=use_bias)
 
     def forward(self, init_node_features, edge_index):
         '''

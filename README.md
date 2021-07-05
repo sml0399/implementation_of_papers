@@ -7,7 +7,7 @@
 	```
 - "conda_create_env.sh" will automatically create anaconda environment with some basic packages. You will be asked to decide the name of the environment. This code is based on anaconda3. The environment contains the followings. You can manually change part of the script depending on your choice.
 	- python 3.7
-	- cuda 10.2
+	- cuda 11.1
 	- numpy
 	- pandas
 	- matplotlib
