@@ -15,6 +15,7 @@
 	- torchaudio
 	- torch_geometric
 	- networkx
+	- graphbrain
 - The codes in this repository may not work if you do not use conda environment.
 
 ### about directories...
