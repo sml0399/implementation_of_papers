@@ -1,6 +1,3 @@
-conda install -y bzip2
-conda install -y -c ostrokach gzip
-
 cd epinion
 wget -c "http://www.trustlet.org/datasets/downloaded_epinions/ratings_data.txt.bz2"
 bzip2 -d ratings_data.txt.bz2

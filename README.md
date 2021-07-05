@@ -1,5 +1,5 @@
 # Implementation_of_Papers
-### conda environment setup
+## conda environment setup
 - executing "conda_create_env.sh"
 	```console
 	foo@bar:~/Desktop/implementation_of_papers$ ./conda_create_env.sh
@@ -21,9 +21,10 @@
 	- torch_geometric
 	- networkx
 	- graphbrain
+	- bzip, gzip, unzip (needed for unzipping downloaded datasets)
 - The codes in this repository may not work if you do not use conda environment.
 
-### about directories...
+## about directories...
 - The following directories are for Internship at [KAIST ISysE DSAIL](https://dsail.kaist.ac.kr/) during 2020.12.28~2021.02.19
 	- DSAIL_CF_recommender_system
 	- DSAIL_GNN_based

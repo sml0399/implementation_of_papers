@@ -13,3 +13,6 @@ conda install -y -c anaconda seaborn
 conda install -y -c anaconda scipy
 conda install -y -c conda-forge spacy
 conda install -y -c conda-forge graphbrain
+conda install -y bzip2
+conda install -y -c ostrokach gzip
+conda install -y -c conda-forge unzip
