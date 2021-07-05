@@ -21,3 +21,9 @@
 
 ## WebKB
 - [dataset](http://www.cs.umd.edu/~sen/lbc-proj/LBC.html) for DSAIL_GNN_based
+
+## NELL
+- [dataset](http://www.cs.cmu.edu/~zhiliny/data/nell_data.tar.gz) for DSAIL_GNN_based
+
+## DIEL
+- [dataset](http://www.cs.cmu.edu/~lbing/data/emnlp-15-diel/emnlp-15-diel.tar.gzl) for DSAIL_GNN_based
