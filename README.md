@@ -1,5 +1,10 @@
 # Implementation_of_Papers
 ### conda environment setup
+- executing "conda_create_env.sh"
+	```console
+	foo@bar:~/Desktop/implementation_of_papers$ ./conda_create_env.sh
+	set the name of conda environment: <type_your_new_environment_name_here>
+	```
 - "conda_create_env.sh" will automatically create anaconda environment with some basic packages. You will be asked to decide the name of the environment. This code is based on anaconda3. The environment contains the followings. You can manually change part of the script depending on your choice.
 	- python 3.7
 	- cuda 10.2
