@@ -1,6 +1,8 @@
-import torch
-import torch_geometric 
-from torch_geometric.datasets import Planetoid
-dataset = Planetoid(root='/tmp/Cora', name='Cora')
-print(dataset[0].edge_index[0].shape)
-
+import os
+root_path=os.path.abspath(__file__)
+while(1):
+    if(root_path[-24:]=="implementation_of_papers"):
+        break
+    else:
+        root_path=os.path.dirname(root_path)
+print(root_path)
