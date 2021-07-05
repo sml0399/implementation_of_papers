@@ -9,10 +9,10 @@ def device_select(gpu_number=0):
         If cuda is not available, cpu will be chosen as device.
 
     Input: 
-        gpu_number: number representing the gpu_number.
+        gpu_number(int): number representing the gpu_number.
 
     Output: 
-        device: string representing device to be used. One of "cpu", "cuda:<gpu_number>"
+        device(string): string representing device to be used. One of "cpu", "cuda:<gpu_number>"
     '''
 
 

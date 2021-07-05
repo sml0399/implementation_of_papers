@@ -9,6 +9,14 @@ class GCN(torch.nn.Module):
         self.conv2 = pyg.GCNConv(in_channels=channel_middle, out_channels=channel_out, normalized=do_normalization, bias=use_bias)
 
     def forward(self, init_node_features, edge_index):
+        '''
+        Description:
+            forward operation
+        
+        Input:
+            init_node_features: initial node features. Tensor with shape [number_of_nodes, number_of_features_per_node]
+            edge_index: edge list. Tensor with shape [2, number_of_edges]
+        '''
         x = self.conv1(init_node_features, edge_index)
         x = F.relu(x)
         x = F.dropout(x, training=self.training)
