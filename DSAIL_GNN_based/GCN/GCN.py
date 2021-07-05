@@ -9,3 +9,4 @@ class GCN(torch.nn.Module):
         self.conv2 = GCNConv(in_channels=channel_middle, out_channels=channel_out, normalized=do_normalization, bias=use_bias)
     def forward(self, x):
         
+        return
