@@ -1,7 +1,7 @@
 # Cora Dataset
 ## download
 ```console
-foo@bar:~/Desktop/implementation_of_papers/dataset/cora$ ./conda_downloader.sh
+foo@bar:~/Desktop/implementation_of_papers/dataset/cora$ ./downloader.sh
 ```
 
 ## [dataset](http://www.cs.umd.edu/~sen/lbc-proj/LBC.html)

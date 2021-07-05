@@ -1,2 +1,5 @@
-./epinion/conda_downloader.sh
-./MovieLens/conda_downloader.sh
+./epinion/downloader.sh
+./MovieLens/downloader.sh
+./citeseer/downloader.sh
+./cora/downloader.sh
+./webkb/downloader.sh

@@ -1,6 +1,3 @@
-sudo apt install bzip2
-sudo apt install gzip
-
 cd epinion
 wget -c "http://www.trustlet.org/datasets/downloaded_epinions/ratings_data.txt.bz2"
 bzip2 -d ratings_data.txt.bz2
