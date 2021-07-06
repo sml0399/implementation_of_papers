@@ -20,9 +20,11 @@ def train(args):
         optimizer.zero_grad()
         out = model(node_features, edge_index)
         loss = F.nll_loss(out, node_type)
+        print(loss)
         loss.backward()
         optimizer.step()
     torch.save(model.state_dict(), os.path.dirname(os.path.realpath(__file__))+"/check_points/"+"best.pt")
+    #torch.save(model, os.path.dirname(os.path.realpath(__file__))+"/check_points/"+"best.pt")
     return model
 
 
