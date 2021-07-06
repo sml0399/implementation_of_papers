@@ -80,7 +80,7 @@ def load_data(data_name, user_defined_data_path=None):
             edge_index[0][i]=node_numbers.index(edge_index[0][i])
             edge_index[1][i]=node_numbers.index(edge_index[1][i])
             
-        return torch.Tensor(node_features), torch.Tensor(edge_index), torch.Tensor(node_type)
+        return torch.Tensor(node_features), torch.Tensor(edge_index).to(torch.int64), torch.Tensor(node_type).to(torch.int64)
 
 
 
@@ -115,7 +115,7 @@ def load_data(data_name, user_defined_data_path=None):
             edge_index[1][i]=node_numbers.index(edge_index[1][i])
             i+=1
             
-        return torch.Tensor(node_features), torch.Tensor(edge_index), torch.Tensor(node_type)
+        return torch.Tensor(node_features), torch.Tensor(edge_index).to(torch.int64), torch.Tensor(node_type).to(torch.int64)
 
 
 
